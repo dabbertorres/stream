@@ -12,8 +12,9 @@ type Decoder interface {
 }
 
 // FromDecoder reads T values from the given Decoder until an error is encountered,
-// which results in the end of the Stream.
+// which results in the end of the [Stream].
 // If the error is not io.EOF, onError is called with the error.
+// onError may be nil, in which case the error is silently dropped.
 func FromDecoder[T any](dec Decoder, onError func(error)) Stream[T] {
 	if onError == nil {
 		onError = func(error) {}
