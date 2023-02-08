@@ -21,3 +21,14 @@ func (m mapStream[In, Out]) forEach(f func(Out) bool) {
 }
 
 func (m mapStream[In, Out]) capacityHint() int { return m.src.capacityHint() }
+
+func FlatMap[In, Out any](in Stream[Stream[In]], mapper func(In) Out) Stream[Out] {
+	return Stream[Out]{
+		src: flattenStream[Out]{
+			parent: mapStream[Stream[In], Stream[Out]]{
+				src:    in.src,
+				mapper: func(i Stream[In]) Stream[Out] { return Map(i, mapper) },
+			},
+		},
+	}
+}
