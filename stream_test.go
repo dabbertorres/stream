@@ -33,6 +33,7 @@ func TestStream(t *testing.T) {
 			_, _ = stream.Max(func(lhs, rhs int) bool { return true })
 			_, _ = stream.Min(func(lhs, rhs int) bool { return true })
 			_, _, _ = stream.MinMax(func(lhs, rhs int) bool { return true })
+			_, _, _ = stream.MinMax(OrderedLess[int])
 			_ = stream.Range()
 			stream.RangeTo(make(chan int))
 			_ = stream.Reduce(1, func(cumulative, next int) int { return cumulative + next })
