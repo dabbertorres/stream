@@ -190,33 +190,31 @@ func (s Stream[T]) Collect() (out []T) {
 	return out
 }
 
-func (s Stream[T]) First() (result T, ok bool) {
+func (s Stream[T]) First() (opt Optional[T]) {
 	if s.src == nil {
-		return result, false
+		return None[T]()
 	}
 
 	s.src.forEach(func(value T) bool {
-		result = value
-		ok = true
+		opt = Some(value)
 		return false
 	})
-	return result, ok
+	return opt
 }
 
-func (s Stream[T]) FirstWhere(f func(T) bool) (result T, ok bool) {
+func (s Stream[T]) FirstWhere(f func(T) bool) (opt Optional[T]) {
 	if s.src == nil {
-		return result, false
+		return None[T]()
 	}
 
 	s.src.forEach(func(value T) bool {
 		if f(value) {
-			result = value
-			ok = true
+			opt = Some(value)
 			return false
 		}
 		return true
 	})
-	return result, ok
+	return opt
 }
 
 func (s Stream[T]) ForEach(f func(T)) {
@@ -230,75 +228,80 @@ func (s Stream[T]) ForEach(f func(T)) {
 	})
 }
 
-func (s Stream[T]) Max(less LessFunc[T]) (max T, found bool) {
+func (s Stream[T]) Max(less LessFunc[T]) (max Optional[T]) {
 	if s.src == nil {
-		return max, false
+		return None[T]()
 	}
 
 	// set the first value
 	s.src.forEach(func(elem T) bool {
-		max = elem
-		found = true
+		max.value = elem
+		max.some = true
 		return false
 	})
 
 	s.src.forEach(func(elem T) bool {
-		if less(max, elem) {
-			max = elem
+		if less(max.value, elem) {
+			max.value = elem
 		}
 		return true
 	})
 
-	return max, found
+	return max
 }
 
-func (s Stream[T]) Min(less LessFunc[T]) (min T, found bool) {
+func (s Stream[T]) Min(less LessFunc[T]) (min Optional[T]) {
 	if s.src == nil {
-		return min, false
+		return None[T]()
 	}
 
 	// set the first value
 	s.src.forEach(func(elem T) bool {
-		min = elem
-		found = true
+		min.value = elem
+		min.some = true
 		return false
 	})
 
 	s.src.forEach(func(elem T) bool {
-		if less(elem, min) {
-			min = elem
+		if less(elem, min.value) {
+			min.value = elem
 		}
 		return true
 	})
 
-	return min, found
+	return min
 }
 
-func (s Stream[T]) MinMax(less LessFunc[T]) (min, max T, found bool) {
+type MinMax[T any] struct {
+	Min T
+	Max T
+}
+
+func (s Stream[T]) MinMax(less LessFunc[T]) (minMax Optional[MinMax[T]]) {
 	if s.src == nil {
-		return min, max, false
+		return None[MinMax[T]]()
 	}
 
 	// set the first value
 	s.src.forEach(func(elem T) bool {
-		max = elem
-		min = elem
-		found = true
+		minMax.value.Max = elem
+		minMax.value.Min = elem
+		minMax.some = true
 		return false
 	})
 
 	s.src.forEach(func(elem T) bool {
 		switch {
-		case less(elem, min):
-			min = elem
-		case less(max, elem):
-			max = elem
+		case less(elem, minMax.value.Min):
+			minMax.value.Min = elem
+		case less(minMax.value.Max, elem):
+			minMax.value.Max = elem
 		}
 
 		return true
 	})
 
-	return min, max, found
+	return minMax
 }
 
 func (s Stream[T]) Range() <-chan T {

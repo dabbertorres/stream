@@ -27,13 +27,13 @@ func TestStream(t *testing.T) {
 			_ = stream.None(func(i int) bool { return true })
 			_ = stream.Append([]int{})
 			_ = stream.Collect()
-			_, _ = stream.First()
-			_, _ = stream.FirstWhere(func(i int) bool { return true })
+			_ = stream.First()
+			_ = stream.FirstWhere(func(i int) bool { return true })
 			stream.ForEach(func(i int) {})
-			_, _ = stream.Max(func(lhs, rhs int) bool { return true })
-			_, _ = stream.Min(func(lhs, rhs int) bool { return true })
-			_, _, _ = stream.MinMax(func(lhs, rhs int) bool { return true })
-			_, _, _ = stream.MinMax(OrderedLess[int])
+			_ = stream.Max(func(lhs, rhs int) bool { return true })
+			_ = stream.Min(func(lhs, rhs int) bool { return true })
+			_ = stream.MinMax(func(lhs, rhs int) bool { return true })
+			_ = stream.MinMax(OrderedLess[int])
 			_ = stream.Range()
 			stream.RangeTo(make(chan int))
 			_ = stream.Reduce(1, func(cumulative, next int) int { return cumulative + next })
@@ -276,28 +276,24 @@ func TestStreamCollect(t *testing.T) {
 
 func TestStreamFirst(t *testing.T) {
 	t.Run("stream is not empty", func(t *testing.T) {
-		result, found := FromSlice([]int{3, 8, 11, 42}).
-			First()
-		if assert.True(t, found) {
-			assert.Equal(t, 3, result)
+		result := FromSlice([]int{3, 8, 11, 42}).First()
+		if assert.True(t, result.Some()) {
+			assert.Equal(t, 3, result.MustGet())
 		}
 	})
 
 	t.Run("stream is empty", func(t *testing.T) {
-		result, found := FromSlice[int, []int](nil).
-			First()
-		if assert.False(t, found) {
-			assert.Equal(t, 0, result)
-		}
+		result := FromSlice[int, []int](nil).First()
+		assert.True(t, result.None())
 	})
 }
 
 func TestStreamFirstIf(t *testing.T) {
-	result, found := FromSlice([]int{3, 8, 11, 42}).
+	result := FromSlice([]int{3, 8, 11, 42}).
 		FirstWhere(func(i int) bool { return i > 10 })
 
-	if assert.True(t, found) {
-		assert.Equal(t, 11, result)
+	if assert.True(t, result.Some()) {
+		assert.Equal(t, 11, result.MustGet())
 	}
 }
 
@@ -312,63 +308,57 @@ func TestStreamForEach(t *testing.T) {
 
 func TestStreamMax(t *testing.T) {
 	t.Run("found", func(t *testing.T) {
-		actual, found := FromSlice([]int{11, 8, 42, 3}).
+		actual := FromSlice([]int{11, 8, 42, 3}).
 			Max(func(lhs, rhs int) bool { return lhs < rhs })
 
-		if assert.True(t, found) {
-			assert.Equal(t, 42, actual)
+		if assert.True(t, actual.Some()) {
+			assert.Equal(t, 42, actual.MustGet())
 		}
 	})
 
 	t.Run("empty", func(t *testing.T) {
-		actual, found := FromSlice([]int{}).
+		actual := FromSlice([]int{}).
 			Max(func(lhs, rhs int) bool { return lhs < rhs })
 
-		if assert.False(t, found) {
-			assert.Equal(t, 0, actual)
-		}
+		assert.True(t, actual.None())
 	})
 }
 
 func TestStreamMin(t *testing.T) {
 	t.Run("found", func(t *testing.T) {
-		actual, found := FromSlice([]int{11, 8, 42, 3}).
+		actual := FromSlice([]int{11, 8, 42, 3}).
 			Min(func(lhs, rhs int) bool { return lhs < rhs })
 
-		if assert.True(t, found) {
-			assert.Equal(t, 3, actual)
+		if assert.True(t, actual.Some()) {
+			assert.Equal(t, 3, actual.MustGet())
 		}
 	})
 
 	t.Run("empty", func(t *testing.T) {
-		actual, found := FromSlice([]int{}).
+		actual := FromSlice([]int{}).
 			Min(func(lhs, rhs int) bool { return lhs < rhs })
 
-		if assert.False(t, found) {
-			assert.Equal(t, 0, actual)
-		}
+		assert.True(t, actual.None())
 	})
 }
 
 func TestStreamMinMax(t *testing.T) {
 	t.Run("found", func(t *testing.T) {
-		actualMin, actualMax, found := FromSlice([]int{11, 8, 42, 3}).
+		actual := FromSlice([]int{11, 8, 42, 3}).
 			MinMax(func(lhs, rhs int) bool { return lhs < rhs })
 
-		if assert.True(t, found) {
-			assert.Equal(t, 3, actualMin)
-			assert.Equal(t, 42, actualMax)
+		if assert.True(t, actual.Some()) {
+			val := actual.MustGet()
+			assert.Equal(t, 3, val.Min)
+			assert.Equal(t, 42, val.Max)
 		}
 	})
 
 	t.Run("empty", func(t *testing.T) {
-		actualMin, actualMax, found := FromSlice([]int{}).
+		actual := FromSlice([]int{}).
 			MinMax(func(lhs, rhs int) bool { return lhs < rhs })
 
-		if assert.False(t, found) {
-			assert.Equal(t, 0, actualMin)
-			assert.Equal(t, 0, actualMax)
-		}
+		assert.True(t, actual.None())
 	})
 }
 
@@ -414,10 +404,10 @@ func ExampleFromSlice() {
 		Limit(2).
 		Transform(func(elem int) int { transformCalled = true; return elem * 2 })
 
-	fmt.Println(filterCalled)    // NOTE: false is printed here - streams are lazily evaluated
-	fmt.Println(transformCalled) // NOTE: false is printed here - streams are lazily evaluated
-	fmt.Println(stream.First())  // NOTE: the stream has now been consumed
-	fmt.Println(stream.FirstWhere(func(i int) bool { return i%2 == 1 }))
+	fmt.Println(filterCalled)         // NOTE: false is printed here - streams are lazily evaluated
+	fmt.Println(transformCalled)      // NOTE: false is printed here - streams are lazily evaluated
+	fmt.Println(stream.First().Get()) // NOTE: the stream has now been consumed
+	fmt.Println(stream.FirstWhere(func(i int) bool { return i%2 == 1 }).Get())
 	fmt.Println(filterCalled)
 	fmt.Println(transformCalled)
 
@@ -455,9 +445,9 @@ func ExampleFromChan() {
 
 	fmt.Println(filterCalled)    // NOTE: false is printed here - streams are lazily evaluated
 	fmt.Println(transformCalled) // NOTE: false is printed here - streams are lazily evaluated
-	fmt.Println(stream.First())
-	fmt.Println(stream.FirstWhere(func(i int) bool { return i%2 == 1 }))
-	fmt.Println(stream.First())
+	fmt.Println(stream.First().Get())
+	fmt.Println(stream.FirstWhere(func(i int) bool { return i%2 == 1 }).Get())
+	fmt.Println(stream.First().Get())
 	fmt.Println(filterCalled)
 	fmt.Println(transformCalled)
 
@@ -475,10 +465,13 @@ func ExampleFromFunc() {
 	var transformCalled bool
 
 	i := 1
-	stream := FromFunc(func() (int, bool) {
+	stream := FromFunc(func() Optional[int] {
 		v := i
 		i *= 2
-		return v, v <= 64
+		if v <= 64 {
+			return Some(v)
+		}
+		return None[int]()
 	}).Skip(1).
 		Limit(10).
 		Transform(func(elem int) int { transformCalled = true; return elem * 3 })

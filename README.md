@@ -21,10 +21,10 @@ func ExampleFromSlice() {
 		Limit(2).
 		Transform(func(elem int) int { transformCalled = true; return elem * 2 })
 
-	fmt.Println(filterCalled)    // NOTE: false is printed here - streams are lazily evaluated
-	fmt.Println(transformCalled) // NOTE: false is printed here - streams are lazily evaluated
-	fmt.Println(stream.First())  // NOTE: the stream has now been consumed
-	fmt.Println(stream.FirstWhere(func(i int) bool { return i%2 == 1 }))
+	fmt.Println(filterCalled)         // NOTE: false is printed here - streams are lazily evaluated
+	fmt.Println(transformCalled)      // NOTE: false is printed here - streams are lazily evaluated
+	fmt.Println(stream.First().Get()) // NOTE: the stream has now been consumed
+	fmt.Println(stream.FirstWhere(func(i int) bool { return i%2 == 1 }).Get())
 	fmt.Println(filterCalled)
 	fmt.Println(transformCalled)
 
@@ -66,9 +66,9 @@ func ExampleFromChan() {
 
 	fmt.Println(filterCalled)    // NOTE: false is printed here - streams are lazily evaluated
 	fmt.Println(transformCalled) // NOTE: false is printed here - streams are lazily evaluated
-	fmt.Println(stream.First())
-	fmt.Println(stream.FirstWhere(func(i int) bool { return i%2 == 1 }))
-	fmt.Println(stream.First())
+	fmt.Println(stream.First().Get())
+	fmt.Println(stream.FirstWhere(func(i int) bool { return i%2 == 1 }).Get())
+	fmt.Println(stream.First().Get())
 	fmt.Println(filterCalled)
 	fmt.Println(transformCalled)
 

@@ -19,12 +19,12 @@ func TestJoin(t *testing.T) {
 	actual := Join(
 		FromChan(ch),
 		FromSlice([]int{42, 23, 9}),
-		FromFunc(func() (int, bool) {
+		FromFunc(func() Optional[int] {
 			if !called {
 				called = true
-				return 3, true
+				return Some(3)
 			}
-			return 0, false
+			return None[int]()
 		}),
 	).Collect()
 
