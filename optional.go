@@ -21,6 +21,13 @@ func None[T any]() Optional[T] {
 	return Optional[T]{some: false}
 }
 
+func OptionalFromPointer[T any](ptr *T) Optional[T] {
+	if ptr == nil {
+		return None[T]()
+	}
+	return Some(*ptr)
+}
+
 func FromOptional[T any](opt Optional[T]) Stream[T] {
 	return Stream[T]{src: opt}
 }
