@@ -6,9 +6,10 @@ type KeyValue[K comparable, V any] struct {
 }
 
 // KeyValueLess provides a generic [LessFunc] for [KeyValue]s with an [Ordered] key.
-func KeyValueLess[K Ordered, V any](lhs, rhs KeyValue[K, V]) bool {
-	return lhs.Key < rhs.Key
-}
+func KeyValueLess[K Ordered, V any](lhs, rhs KeyValue[K, V]) bool { return lhs.Key < rhs.Key }
+
+// KeyValueAssociate provides a default function for [KeyValue]s for [Associate].
+func KeyValueAssociate[K comparable, V any](kv KeyValue[K, V]) (K, V) { return kv.Key, kv.Val }
 
 func FromMap[K comparable, V any, M ~map[K]V](src M) Stream[KeyValue[K, V]] {
 	return Stream[KeyValue[K, V]]{
