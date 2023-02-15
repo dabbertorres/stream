@@ -6,7 +6,7 @@ type Mapper[In, Out any] struct {
 
 func (m Mapper[In, Out]) By(mapper func(In) Out) Stream[Out] {
 	return Stream[Out]{
-		src: mapStream[In, Out]{
+		src: mapperStream[In, Out]{
 			src:    m.src,
 			mapper: mapper,
 		},
@@ -19,18 +19,18 @@ func Map[Out, In any](in Stream[In]) Mapper[In, Out] {
 	}
 }
 
-type mapStream[In, Out any] struct {
+type mapperStream[In, Out any] struct {
 	src    streamer[In]
 	mapper func(In) Out
 }
 
-func (m mapStream[In, Out]) forEach(f func(Out) bool) {
+func (m mapperStream[In, Out]) forEach(f func(Out) bool) {
 	m.src.forEach(func(value In) bool {
 		return f(m.mapper(value))
 	})
 }
 
-func (m mapStream[In, Out]) capacityHint() int { return m.src.capacityHint() }
+func (m mapperStream[In, Out]) capacityHint() int { return m.src.capacityHint() }
 
 type FlatMapper[In, Out any] struct {
 	src streamer[In]
@@ -45,7 +45,7 @@ func FlatMap[Out, In any](in Stream[In]) FlatMapper[In, Out] {
 func (m FlatMapper[In, Out]) By(mapper func(In) Stream[Out]) Stream[Out] {
 	return Stream[Out]{
 		src: flattenStream[Out]{
-			parent: mapStream[In, Stream[Out]]{
+			parent: mapperStream[In, Stream[Out]]{
 				src:    m.src,
 				mapper: mapper,
 			},
