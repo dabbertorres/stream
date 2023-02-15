@@ -12,10 +12,14 @@ func TestAssociate(t *testing.T) {
 		Val int
 	}
 
-	actual := Associate(
-		FromSlice([]T{{Key: "foo", Val: 37}, {Key: "bar", Val: -10}, {Key: "baz", Val: 45}}),
-		func(elem T) (string, int) { return elem.Key, elem.Val },
-	)
+	in := FromSlice([]T{
+		{Key: "foo", Val: 37},
+		{Key: "bar", Val: -10},
+		{Key: "baz", Val: 45},
+	})
+
+	actual := Associate[string, int](in).
+		By(func(elem T) (string, int) { return elem.Key, elem.Val })
 
 	expect := map[string]int{
 		"foo": 37,
