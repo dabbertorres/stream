@@ -2,6 +2,19 @@ package stream
 
 import "container/heap"
 
+func Sorted[T any](in Stream[T], less LessFunc[T]) Stream[T] {
+	return Stream[T]{
+		src: sortedStream[T]{
+			parent: in.src,
+			less:   less,
+		},
+	}
+}
+
+func SortedBy[T any](less LessFunc[T]) func(Stream[T]) Stream[T] {
+	return ApplyRight(Sorted[T], less)
+}
+
 type sortedStream[T any] struct {
 	parent streamer[T]
 	less   LessFunc[T]

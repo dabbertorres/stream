@@ -1,22 +1,31 @@
 package stream
 
-type Mapper[In, Out any] struct {
-	src streamer[In]
-}
-
-func (m Mapper[In, Out]) By(mapper func(In) Out) Stream[Out] {
+func Map[In, Out any](in Stream[In], mapper func(In) Out) Stream[Out] {
 	return Stream[Out]{
 		src: mapperStream[In, Out]{
-			src:    m.src,
+			src:    in.src,
 			mapper: mapper,
 		},
 	}
 }
 
-func Map[Out, In any](in Stream[In]) Mapper[In, Out] {
-	return Mapper[In, Out]{
-		src: in.src,
+func MapBy[In, Out any](mapper func(In) Out) func(Stream[In]) Stream[Out] {
+	return ApplyRight(Map[In, Out], mapper)
+}
+
+func FlatMap[In, Out any](in Stream[In], mapper func(In) Stream[Out]) Stream[Out] {
+	return Stream[Out]{
+		src: flattenStream[Out]{
+			parent: mapperStream[In, Stream[Out]]{
+				src:    in.src,
+				mapper: mapper,
+			},
+		},
 	}
+}
+
+func FlatMapBy[In, Out any](mapper func(In) Stream[Out]) func(Stream[In]) Stream[Out] {
+	return ApplyRight(FlatMap[In, Out], mapper)
 }
 
 type mapperStream[In, Out any] struct {
@@ -31,24 +40,3 @@ func (m mapperStream[In, Out]) forEach(f func(Out) bool) {
 }
 
 func (m mapperStream[In, Out]) capacityHint() int { return m.src.capacityHint() }
-
-type FlatMapper[In, Out any] struct {
-	src streamer[In]
-}
-
-func FlatMap[Out, In any](in Stream[In]) FlatMapper[In, Out] {
-	return FlatMapper[In, Out]{
-		src: in.src,
-	}
-}
-
-func (m FlatMapper[In, Out]) By(mapper func(In) Stream[Out]) Stream[Out] {
-	return Stream[Out]{
-		src: flattenStream[Out]{
-			parent: mapperStream[In, Stream[Out]]{
-				src:    m.src,
-				mapper: mapper,
-			},
-		},
-	}
-}

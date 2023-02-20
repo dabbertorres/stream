@@ -22,7 +22,7 @@ func ValueTransform[K comparable, V any](f func(V) V) func(KeyValue[K, V]) KeyVa
 }
 
 // ValueMapper is a helper wrapper to simplify mapping only the value of a [KeyValue].
-func ValueMapper[OutV any, K comparable, InV any](f func(InV) OutV) func(KeyValue[K, InV]) KeyValue[K, OutV] {
+func ValueMapper[K comparable, InV, OutV any](f func(InV) OutV) func(KeyValue[K, InV]) KeyValue[K, OutV] {
 	return func(kv KeyValue[K, InV]) KeyValue[K, OutV] {
 		return KeyValue[K, OutV]{
 			Key: kv.Key,

@@ -27,3 +27,7 @@ func ApplyRight[Left, Right, Out any, Func ~func(Left, Right) Out](f Func, right
 		return f(left, right)
 	}
 }
+
+func ApplyTo[T any, Func ~func(Stream[T]) Stream[T]](in Stream[T], f Func) Stream[T] {
+	return f(in)
+}

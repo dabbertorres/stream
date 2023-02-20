@@ -18,8 +18,24 @@ func (a Associater[In, K, V]) ByTo(to map[K]V, f func(In) (K, V)) {
 	})
 }
 
-func Associate[K comparable, V any, In any](in Stream[In]) Associater[In, K, V] {
-	return Associater[In, K, V]{src: in.src}
+func Associate[K comparable, V any, In any](in Stream[In], f func(In) (K, V)) map[K]V {
+	m := make(map[K]V, in.src.capacityHint())
+
+	in.src.forEach(func(in In) bool {
+		k, v := f(in)
+		m[k] = v
+		return true
+	})
+
+	return m
+}
+
+func AssociateBy[K comparable, V any, In any](f func(In) (K, V)) func(Stream[In]) map[K]V {
+	return ApplyRight(Associate[K, V, In], f)
+}
+
+func AssociateByKeyValue[K comparable, V any](in Stream[KeyValue[K, V]]) map[K]V {
+	return Associate(in, func(kv KeyValue[K, V]) (K, V) { return kv.Key, kv.Val })
 }
 
 // KeyValueAssociater is a helper to reduce noise when using [Associate] with [KeyValue]s.

@@ -18,8 +18,8 @@ func TestAssociate(t *testing.T) {
 		{Key: "baz", Val: 45},
 	})
 
-	actual := Associate[string, int](in).
-		By(func(elem T) (string, int) { return elem.Key, elem.Val })
+	actual := Associate(in,
+		func(elem T) (string, int) { return elem.Key, elem.Val })
 
 	expect := map[string]int{
 		"foo": 37,
