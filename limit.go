@@ -1,19 +1,21 @@
 package stream
 
-type limitStream[T any] struct {
-	parent streamer[T]
-	limit  int
-}
+func (s Seq[T]) Limit(n int) Seq[T] {
+	return func(yield func(T) bool) {
+		if n <= 0 {
+			return
+		}
 
-func (s limitStream[T]) forEach(f func(T) bool) {
-	var total int
-	s.parent.forEach(func(value T) bool {
-		notDone := f(value)
-		total++
-		return notDone && total < s.limit
-	})
-}
+		var i int
+		for v := range s {
+			if !yield(v) {
+				return
+			}
 
-func (s limitStream[T]) capacityHint() int {
-	return min(s.limit, s.parent.capacityHint())
+			i++
+			if i >= n {
+				return
+			}
+		}
+	}
 }

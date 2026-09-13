@@ -1,31 +1,17 @@
 package stream
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFromMap(t *testing.T) {
-	input := map[string]int{
-		"foo":   5,
-		"bar":   -7,
-		"baz":   43,
-		"xyzzy": -11,
-		"plugh": 513,
-	}
+func TestSeqMap(t *testing.T) {
+	actual := collectSeq(
+		Of(slices.Values([]int{5, 10, 3, 90})).Map(func(x int) bool { return x%2 == 0 }),
+	)
 
-	actual := FromMap(input).
-		Sorted(KeyValueLess[string, int]).
-		Collect()
-
-	expect := []KeyValue[string, int]{
-		{"bar", -7},
-		{"baz", 43},
-		{"foo", 5},
-		{"plugh", 513},
-		{"xyzzy", -11},
-	}
-
+	expect := []bool{false, true, false, true}
 	assert.Equal(t, expect, actual)
 }

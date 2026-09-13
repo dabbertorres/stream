@@ -1,14 +1,7 @@
-# stream
+package stream
 
-streams package for Go.
+import "fmt"
 
-[docs](https://pkg.go.dev/github.com/dabbertorres/stream/v2)
-
-## Quick Examples
-
-### Stream a slice
-
-```go
 func ExampleOfSlice() {
 	var (
 		filterCalled bool
@@ -36,11 +29,7 @@ func ExampleOfSlice() {
 	// true
 	// true
 }
-```
 
-### Stream a channel
-
-```go
 func ExampleOfChan() {
 	var (
 		filterCalled bool
@@ -81,4 +70,3 @@ func ExampleOfChan() {
 	// true
 	// true
 }
-```

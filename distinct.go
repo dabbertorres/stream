@@ -1,35 +1,23 @@
 package stream
 
-import (
-	"hash/maphash"
-	"unsafe"
-)
+// Distinct returns a Seq that yields only the first occurrence of each
+// distinct element of s, in order, using == to compare elements.
+//
+// See also [Seq.Distinct] for a fluent version that does not require T to
+// be comparable, at the cost of a weaker (unsafe) notion of equality.
+func Distinct[T comparable](s Seq[T]) Seq[T] {
+	return func(yield func(T) bool) {
+		seen := make(map[T]struct{})
 
-type distinctStream[T any] struct {
-	parent streamer[T]
-}
+		for v := range s {
+			if _, ok := seen[v]; ok {
+				continue
+			}
+			seen[v] = struct{}{}
 
-func (s distinctStream[T]) forEach(f func(T) bool) {
-	var (
-		uniqueElems = make(map[uint64]struct{})
-		seed        = maphash.MakeSeed()
-	)
-
-	s.parent.forEach(func(elem T) bool {
-		// TODO: it'd be nice to have a better way (read: not using unsafe) to do this
-		id := maphash.Bytes(seed,
-			unsafe.Slice((*byte)(unsafe.Pointer(&elem)), unsafe.Sizeof(elem)))
-
-		if _, ok := uniqueElems[id]; !ok {
-			// distinct!
-			uniqueElems[id] = struct{}{}
-			f(elem)
+			if !yield(v) {
+				return
+			}
 		}
-
-		return true
-	})
+	}
 }
-
-func (s distinctStream[T]) capacityHint() int { return s.parent.capacityHint() }
-
-func Identity[T comparable](v T) T { return v }

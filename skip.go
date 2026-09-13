@@ -1,21 +1,17 @@
 package stream
 
-type skipStream[T any] struct {
-	parent streamer[T]
-	skip   int
-}
+func (s Seq[T]) Skip(n int) Seq[T] {
+	return func(yield func(T) bool) {
+		var i int
+		for v := range s {
+			if i < n {
+				i++
+				continue
+			}
 
-func (s skipStream[T]) forEach(f func(T) bool) {
-	var total int
-	s.parent.forEach(func(value T) bool {
-		if total < s.skip {
-			total++
-			return true
+			if !yield(v) {
+				return
+			}
 		}
-		return f(value)
-	})
-}
-
-func (s skipStream[T]) capacityHint() int {
-	return s.parent.capacityHint() - s.skip
+	}
 }
