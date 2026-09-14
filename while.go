@@ -1,42 +1,34 @@
 package stream
 
-type dropWhileStream[T any] struct {
-	parent streamer[T]
-	filter func(T) bool
-}
+func (s Seq[T]) DropWhile(f func(T) bool) Seq[T] {
+	return func(yield func(T) bool) {
+		dropping := true
 
-func (s dropWhileStream[T]) forEach(f func(T) bool) {
-	// dropping...
-	s.parent.forEach(func(elem T) bool {
-		if s.filter(elem) {
-			return true
+		for v := range s {
+			if dropping {
+				if f(v) {
+					continue
+				}
+				dropping = false
+			}
+
+			if !yield(v) {
+				return
+			}
 		}
-
-		f(elem)
-		return false
-	})
-
-	// pass on everything else
-	s.parent.forEach(f)
+	}
 }
 
-func (s dropWhileStream[T]) capacityHint() int { return s.parent.capacityHint() }
+func (s Seq[T]) TakeWhile(f func(T) bool) Seq[T] {
+	return func(yield func(T) bool) {
+		for v := range s {
+			if !f(v) {
+				return
+			}
 
-type takeWhileStream[T any] struct {
-	parent streamer[T]
-	filter func(T) bool
-}
-
-func (s takeWhileStream[T]) forEach(f func(T) bool) {
-	s.parent.forEach(func(elem T) bool {
-		if !s.filter(elem) {
-			return false
+			if !yield(v) {
+				return
+			}
 		}
-
-		return f(elem)
-	})
-
-	// drop everything else
+	}
 }
-
-func (s takeWhileStream[T]) capacityHint() int { return s.parent.capacityHint() }

@@ -28,10 +28,6 @@ func OptionalFromPointer[T any](ptr *T) Optional[T] {
 	return Some(*ptr)
 }
 
-func FromOptional[T any](opt Optional[T]) Stream[T] {
-	return Stream[T]{src: opt}
-}
-
 func (o Optional[T]) Some() bool { return o.some }
 func (o Optional[T]) None() bool { return !o.some }
 
@@ -67,19 +63,6 @@ func (o Optional[T]) IfNone(f func()) {
 	if !o.some {
 		f()
 	}
-}
-
-func (o Optional[T]) forEach(f func(T) bool) {
-	if o.some {
-		_ = f(o.value)
-	}
-}
-
-func (o Optional[T]) capacityHint() int {
-	if o.some {
-		return 1
-	}
-	return 0
 }
 
 func (o Optional[T]) MarshalJSON() ([]byte, error) {
